@@ -1,1 +1,1273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Último Rancho</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Cinzel', serif;
+            overflow-x: hidden;
+            background: #000;
+            cursor: crosshair;
+        }
+        
+        .inventory-title {
+        color: #ffffff; 
+        } 
+
+         .inventory-item span {
+          color: #ffffff;
+        }
+
+        .screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dust-particles {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.1), transparent),
+                radial-gradient(2px 2px at 60% 70%, rgba(255,255,255,0.1), transparent),
+                radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.1), transparent),
+                radial-gradient(2px 2px at 80% 10%, rgba(255,255,255,0.1), transparent);
+            animation: dust 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes dust {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+
+        /* TELA DE CARREGAMENTO */
+        #loading {
+            background: linear-gradient(to bottom, #78350f, #1c1917, #000);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-title {
+            font-family: 'Rye', serif;
+            font-size: 5rem;
+            color: #fde68a;
+            text-align: center;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+            margin-bottom: 2rem;
+            line-height: 1.2;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 8px;
+            background: #292524;
+            border: 2px solid #92400e;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .loading-fill {
+            height: 100%;
+            background: linear-gradient(to right, #d97706, #fbbf24);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .loading-text {
+            color: #92400e;
+            letter-spacing: 4px;
+            font-size: 0.875rem;
+        }
+
+        /* MENU PRINCIPAL */
+        #menu {
+            background: linear-gradient(to bottom, #c2410c, #78350f, #292524);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .desert-silhouette {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(to top, #000 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .desert-silhouette::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            width: 60px;
+            height: 120px;
+            background: #000;
+            clip-path: polygon(50% 0%, 45% 40%, 40% 40%, 35% 100%, 65% 100%, 60% 40%, 55% 40%);
+        }
+
+        .desert-silhouette::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 20%;
+            width: 80px;
+            height: 100px;
+            background: #000;
+            clip-path: polygon(50% 0%, 45% 30%, 40% 30%, 35% 100%, 65% 100%, 60% 30%, 55% 30%);
+        }
+
+        .menu-content {
+            z-index: 10;
+            text-align: center;
+        }
+
+        .main-title {
+            font-family: 'Rye', serif;
+            font-size: 6rem;
+            color: #fef3c7;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+            margin-bottom: 3rem;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .western-btn {
+            background: linear-gradient(to bottom, #78350f, #451a03);
+            border: 3px solid #d97706;
+            color: #fef3c7;
+            padding: 16px 48px;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 #451a03;
+            font-family: 'Rye', serif;
+            width: 400px;
+        }
+
+        .western-btn:hover {
+            background: linear-gradient(to bottom, #92400e, #78350f);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #451a03;
+        }
+
+        .western-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #451a03;
+        }
+
+        .western-btn-secondary {
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #d97706;
+            color: #fbbf24;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Rye', serif;
+        }
+
+        .western-btn-secondary:hover {
+            background: rgba(217,119,6,0.2);
+            color: #fef3c7;
+        }
+
+        .volume-btn {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #d97706;
+            color: #fbbf24;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+
+        .volume-btn:hover {
+            background: rgba(217,119,6,0.3);
+            color: #fef3c7;
+        }
+
+        /* TELA DE LORE */
+        #lore {
+            background: linear-gradient(to bottom, #292524, #78350f, #000);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .lore-content {
+            max-width: 800px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .lore-title {
+            font-family: 'Rye', serif;
+            font-size: 4rem;
+            color: #fde68a;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+            margin-bottom: 2rem;
+        }
+
+        .lore-box {
+            background: rgba(0,0,0,0.6);
+            border: 4px solid #92400e;
+            padding: 2rem;
+            backdrop-filter: blur(5px);
+            margin-bottom: 2rem;
+        }
+
+        .lore-text {
+            color: #fef3c7;
+            font-size: 1.25rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .lore-highlight {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .lore-final {
+            color: #fbbf24;
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        /* SELEÇÃO DE PERSONAGEM */
+        #selection {
+            background: linear-gradient(to bottom, #92400e, #292524, #000);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .selection-content {
+            max-width: 1200px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .selection-title {
+            font-family: 'Rye', serif;
+            font-size: 3.5rem;
+            color: #fde68a;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .character-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .char-image-container {
+            position: relative;
+        }
+
+        .char-image {
+            aspect-ratio: 3/4;
+            background: #292524;
+            border: 8px solid #92400e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #92400e;
+            font-size: 1.125rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .char-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .char-image::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+        }
+
+        .char-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .char-name {
+            font-family: 'Rye', serif;
+            font-size: 2.5rem;
+            color: #fef3c7;
+            margin-bottom: 0.5rem;
+        }
+
+        .char-nickname {
+            font-size: 1.5rem;
+            color: #fbbf24;
+            font-style: italic;
+            margin-bottom: 0.5rem;
+        }
+
+        .char-age {
+            color: #fbbf24;
+            font-size: 1rem;
+        }
+
+        .char-desc {
+            color: #fef3c7;
+            font-size: 1.125rem;
+            line-height: 1.6;
+        }
+
+        .char-box {
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #92400e;
+            padding: 1rem;
+        }
+
+        .char-box-title {
+            color: #fbbf24;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .char-box-content {
+            color: #fef3c7;
+        }
+
+        .char-box ul {
+            list-style: none;
+        }
+
+        .char-box li {
+            margin-bottom: 0.25rem;
+        }
+
+        .char-stats-grid {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat-box {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .stat-box.hp {
+            background: rgba(127, 29, 29, 0.4);
+            border-color: #991b1b;
+        }
+
+        .stat-box.defense {
+            background: rgba(29, 78, 216, 0.4);
+            border-color: #1e40af;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-box.hp .stat-label {
+            color: #fca5a5;
+        }
+
+        .stat-box.defense .stat-label {
+            color: #93c5fd;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .stat-box.hp .stat-value {
+            color: #fef2f2;
+        }
+
+        .stat-box.defense .stat-value {
+            color: #eff6ff;
+        }
+
+        .char-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-full {
+            flex: 1;
+        }
+
+        .navigation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .nav-btn {
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #d97706;
+            color: #fbbf24;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(217,119,6,0.3);
+            color: #fef3c7;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #92400e;
+            transition: all 0.3s;
+        }
+
+        .nav-dot.active {
+            background: #fbbf24;
+        }
+
+        .back-container {
+            text-align: center;
+        }
+
+        /* FICHA COMPLETA */
+        #sheet {
+            background: rgba(0,0,0,0.95);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sheet-content {
+            max-width: 1000px;
+            width: 100%;
+            background: linear-gradient(to bottom, #292524, #1c1917);
+            border: 8px solid #92400e;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #d97706;
+            color: #fbbf24;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(217,119,6,0.3);
+            color: #fef3c7;
+        }
+
+        .sheet-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .attributes-section {
+            margin-top: 2rem;
+        }
+
+        .attributes-title {
+            font-family: 'Rye', serif;
+            font-size: 2rem;
+            color: #fbbf24;
+            margin-bottom: 1rem;
+        }
+
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .attribute-box {
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #92400e;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .attribute-name {
+            color: #fbbf24;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .attribute-value {
+            color: #fef3c7;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* CRÉDITOS */
+        #credits {
+            background: linear-gradient(to bottom, #292524, #78350f, #000);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .credits-content {
+            max-width: 700px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .credits-title {
+            font-family: 'Rye', serif;
+            font-size: 4rem;
+            color: #fde68a;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+            margin-bottom: 2rem;
+        }
+
+        .credits-box {
+            background: rgba(0,0,0,0.6);
+            border: 4px solid #92400e;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .credits-text {
+            color: #fef3c7;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .credits-name {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .credits-quote {
+            color: #92400e;
+            font-size: 0.875rem;
+            font-style: italic;
+            margin-top: 2rem;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .logo-title, .main-title {
+                font-size: 3rem;
+            }
+
+            .western-btn {
+                width: 300px;
+                font-size: 16px;
+                padding: 12px 32px;
+            }
+
+            .character-display, .sheet-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .selection-title {
+                font-size: 2.5rem;
+            }
+
+            .char-name {
+                font-size: 2rem;
+            }
+
+            .attributes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Áudio de fundo -->
+    <audio id="bgMusic" loop>
+        <source src="music/theme.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- TELA DE CARREGAMENTO -->
+    <div id="loading" class="screen active">
+        <div class="dust-particles"></div>
+        <h1 class="logo-title">O ÚLTIMO<br>RANCHO</h1>
+        <div class="loading-bar">
+            <div class="loading-fill" id="loadingFill"></div>
+        </div>
+        <p class="loading-text">CARREGANDO...</p>
+    </div>
+
+    <!-- MENU PRINCIPAL -->
+    <div id="menu" class="screen">
+        <div class="desert-silhouette"></div>
+        <div class="dust-particles"></div>
+        <div class="menu-content">
+            <h1 class="main-title">O ÚLTIMO RANCHO</h1>
+            <div class="menu-buttons">
+                <button class="western-btn" onclick="showScreen('selection')">SELEÇÃO DE PERSONAGEM</button>
+                <button class="western-btn" onclick="showScreen('lore')">LORE</button>
+                <button class="western-btn" onclick="showScreen('credits')">CRÉDITOS</button>
+            </div>
+        </div>
+        <button class="volume-btn" onclick="toggleMute()">
+            <span id="volumeIcon">🔊</span>
+        </button>
+    </div>
+
+    <!-- TELA DE LORE -->
+    <div id="lore" class="screen">
+        <div class="dust-particles"></div>
+        <div class="lore-content">
+            <h2 class="lore-title">O MUNDO</h2>
+            <div class="lore-box">
+                <p class="lore-text">
+                    O ano é 1888. A fronteira está morrendo, e com ela, os homens que um dia dominaram o deserto.
+                </p>
+                <p class="lore-text">
+                    <span class="lore-highlight">"O Último Rancho"</span> é o último refúgio de quatro criminosos lendários, 
+                    forçados pelo governo mundial a caçar outros foras-da-lei em troca da própria liberdade.
+                </p>
+                <p class="lore-text">
+                    Mas eles não são aliados. Apenas sobreviventes de um Oeste que já não existe.
+                </p>
+                <p class="lore-final">
+                    Aqui, não há heróis — só homens e mulheres tentando morrer do lado certo da arma.
+                </p>
+            </div>
+            <div style="margin-top: 2rem;">
+                <button class="western-btn-secondary" onclick="showScreen('menu')">← VOLTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SELEÇÃO DE PERSONAGEM -->
+    <div id="selection" class="screen">
+        <div class="dust-particles"></div>
+        <div class="selection-content">
+            <h2 class="selection-title">ESCOLHA SEU CAÇADOR</h2>
+            
+            <div class="character-display" id="characterDisplay">
+                <!-- Personagem será inserido aqui via JavaScript -->
+            </div>
+
+            <div class="navigation">
+                <button class="nav-btn" onclick="prevCharacter()">‹</button>
+                <div class="nav-dots" id="navDots"></div>
+                <button class="nav-btn" onclick="nextCharacter()">›</button>
+            </div>
+
+            <div class="back-container" style="margin-top: 2rem;">
+                <button class="western-btn-secondary" onclick="showScreen('menu')">← VOLTAR AO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FICHA COMPLETA -->
+    <div id="sheet" class="screen">
+        <div class="sheet-content" id="sheetContent">
+            <!-- Ficha será inserida aqui via JavaScript -->
+        </div>
+    </div>
+
+    <!-- CRÉDITOS -->
+    <div id="credits" class="screen">
+        <div class="dust-particles"></div>
+        <div class="credits-content">
+            <h2 class="credits-title">CRÉDITOS</h2>
+            <div class="credits-box">
+                <p class="credits-text">
+                    <span class="credits-name">Criado por:</span><br>
+                    [Seu Nome]
+                </p>
+                <p class="credits-text">
+                    RPG "O Último Rancho"<br>
+                    Um faroeste sombrio de redenção e vingança
+                </p>
+                <p class="credits-quote">
+                    "Na fronteira, não há heróis.<br>
+                    Apenas sobreviventes."
+                </p>
+            </div>
+            <button class="western-btn-secondary" onclick="showScreen('menu')">← VOLTAR</button>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos personagens
+        const characters = [
+            {
+                id: 'elias',
+                name: 'Elias Crowe',
+                nickname: 'O Coiote de San Judas',
+                age: 46,
+                image: 'images/elias-crowe.jpg',
+                shortDesc: 'Um ex-capitão confederado frio e letal, conhecido por sobreviver onde ninguém mais sobrevive.',
+                lore: 'Traído por oficiais corruptos, Elias virou sua mira contra os próprios homens do governo. Capturado, aceitou caçar outros monstros em troca da vida.',
+                weapons: ['Revólver Colt Navy duplo — Dano: 2d8 perfurante', 'Rifle Winchester 1873 — Dano: 2d10 perfurante', 'Faca de soldado — Dano: 1d6 cortante'],
+                special: '🦅 Olho de Corvo — Elias enxerga o campo de batalha como um predador. Uma vez por rodada, pode anular uma rolagem de ataque inimiga ou garantir um acerto crítico em seu disparo - 3 rodadas de recarga',
+                hp: 24,
+                defense: 13,
+                stats: [
+                    { name: 'Saque', bonus: '+2' },
+                    { name: 'Conhecimento', bonus: '+3' },
+                    { name: 'Atletismo', bonus: '+1' },
+                    { name: 'Força', bonus: '0' },
+                    { name: 'Intuição', bonus: '+3' },
+                    { name: 'Magia', bonus: '+0' },
+                    { name: 'Furtividade', bonus: '+2' },
+                    { name: 'Constituição', bonus: '+1' },
+                    { name: 'Sorte', bonus: '+1' },
+                    { name: 'Percepção', bonus: '+1'},
+                    { name: 'Investigação', bonus: '+2'}
+                ]
+            },
+            {
+                id: 'santiago',
+                name: 'Santiago "Lobo" Cortez',
+                nickname: 'O Demônio de Durango',
+                age: 38,
+                image: 'images/santiago-cortez.jpg',
+                shortDesc: 'Um bandoleiro carismático e cruel, que acha graça no meio do caos.',
+                lore: 'Traído e deixado para morrer pelo próprio bando, Santiago jurou vingança. Agora, caçar é sua religião.',
+                weapons: ['Espingarda de cano serrado — Dano: 3d8 perfurante', 'Facão — Dano: 2d6 cortante', 'Revólver LeMat — Dano: 2d8 perfurante / 2d10 explosivo'],
+                special: 'Fúria de Durango — Quando cai abaixo de metade da vida, entra em Fúria: +2 em Força e Constituição, +3 de dano bruto e ignora penalidades de ferimento por 2 turnos. - 3 rodadas de recarga',
+                hp: 26,
+                defense: 12,
+                stats: [
+                    { name: 'Saque', bonus: '+2' },
+                    { name: 'Conhecimento', bonus: '0' },
+                    { name: 'Atletismo', bonus: '+2' },
+                    { name: 'Força', bonus: '+3' },
+                    { name: 'Intuição', bonus: '0' },
+                    { name: 'Magia', bonus: '-1' },
+                    { name: 'Furtividade', bonus: '0' },
+                    { name: 'Constituição', bonus: '+2' },
+                    { name: 'Sorte', bonus: '+1' },
+                    { name: 'Percepção', bonus: '+0'},
+                    { name: 'Investigação', bonus: '+1'}
+                ]
+            },
+            {
+                id: 'jonah',
+                name: 'Jonah Briggs',
+                nickname: 'O Pregador Mudo',
+                age: 55,
+                image: 'images/jonah-briggs.jpg',
+                shortDesc: 'Um ex-pastor armado que acredita ser o instrumento da justiça divina.',
+                lore: 'Após ver sua congregação morrer queimada, Jonah se calou para sempre — e passou a "purificar" pecadores com chumbo.',
+                weapons: ['Espingarda longa — Dano: 2d10 perfurante', 'Machado de lenhador — Dano: 2d8 cortante', 'Bíblia rasgada — +1 em testes de resistência contra medo e magia; canaliza Punição Divina.'],
+                special: 'Uma vez por combate, marca um inimigo como “amaldiçoado”.Enquanto estiver marcado, Jonah tem vantagem e +2 de dano; o inimigo sofre -1 em Defesa e Sorte.Contra pecadores (assassinos, traidores, ladrões), o bônus dobra.',
+                hp: 28,
+                defense: 11,
+                stats: [
+                    { name: 'Saque', bonus: '+1' },
+                    { name: 'Conhecimento', bonus: '+1' },
+                    { name: 'Atletismo', bonus: '0' },
+                    { name: 'Força', bonus: '+2' },
+                    { name: 'Intuição', bonus: '+2' },
+                    { name: 'Magia', bonus: '+1' },
+                    { name: 'Furtividade', bonus: '-1' },
+                    { name: 'Constituição', bonus: '+3' },
+                    { name: 'Sorte', bonus: '0' },
+                    { name: 'Percepção', bonus: '-1'},
+                    { name: 'Investigação', bonus: '+0'}
+                ]
+            },
+            {
+                id: 'abigail',
+                name: 'Abigail "Red" Malone',
+                nickname: 'A Viúva de Sangue',
+                age: 32,
+                image: 'images/abigail-malone.jpg',
+                shortDesc: 'Uma ex-ladra de trem, inteligente e veloz, guiada apenas por vingança.',
+                lore: 'Depois que caçadores mataram seu marido, Abigail jurou nunca mais amar — só matar. Trabalha pro governo porque é a única forma de continuar viva.',
+                weapons: ['Revólver Peacemaker dourado  — Dano: 2d8 perfurante', 'Adaga de bota — Dano: 1d4 cortante', 'Fuzil leve — Dano: 2d10 perfurante'],
+                special: 'Red age antes de todos no primeiro turno. Seu primeiro ataque é automático e crítico se o inimigo estiver descoberto. Durante o combate, mantém +3 em Saque e +2 em Furtividade. Se eliminar um alvo com o primeiro disparo, recupera 3 de vida.',
+                hp: 22,
+                defense: 14,
+                stats: [
+                    { name: 'Saque', bonus: '+4' },
+                    { name: 'Conhecimento', bonus: '+1' },
+                    { name: 'Atletismo', bonus: '+2' },
+                    { name: 'Força', bonus: '0' },
+                    { name: 'Intuição', bonus: '+2' },
+                    { name: 'Magia', bonus: '0' },
+                    { name: 'Furtividade', bonus: '+2' },
+                    { name: 'Constituição', bonus: '+1' },
+                    { name: 'Sorte', bonus: '+1' },
+                    { name: 'Percepção', bonus: '+3'},
+                    { name: 'Investigação', bonus: '+1'}
+                ]
+            }
+        ];
+
+        let currentCharIndex = 0;
+        let isMuted = true;
+        let selectedCharacter = null;
+        let currentHP = 0;
+        let inventory = [];
+        const bgMusic = document.getElementById('bgMusic');
+
+        // Carregamento
+        let loadProgress = 0;
+        const loadInterval = setInterval(() => {
+            loadProgress += 2;
+            document.getElementById('loadingFill').style.width = loadProgress + '%';
+            
+            if (loadProgress >= 100) {
+                clearInterval(loadInterval);
+                setTimeout(() => {
+                    showScreen('menu');
+                    bgMusic.play().catch(e => console.log('Autoplay bloqueado'));
+                }, 500);
+            }
+        }, 60);
+
+        // Trocar de tela
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenName).classList.add('active');
+            
+            if (screenName === 'selection') {
+                displayCharacter();
+                createNavDots();
+            }
+        }
+
+        // Exibir personagem
+        function displayCharacter() {
+            const char = characters[currentCharIndex];
+            const display = document.getElementById('characterDisplay');
+            
+            display.innerHTML = `
+                <div class="char-image-container">
+                    <div class="char-image">
+                        <img src="${char.image}" alt="${char.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='[Imagem: ${char.image}]'">
+                    </div>
+                </div>
+                
+                <div class="char-info">
+                    <div>
+                        <h3 class="char-name">${char.name}</h3>
+                        <p class="char-nickname">${char.nickname}</p>
+                        <p class="char-age">Idade: ${char.age}</p>
+                    </div>
+                    
+                    <p class="char-desc">${char.shortDesc}</p>
+                    
+                    <div class="char-box">
+                        <h4 class="char-box-title">ARMAS:</h4>
+                        <ul class="char-box-content">
+                            ${char.weapons.map(w => `<li>• ${w}</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="char-box">
+                        <h4 class="char-box-title">HABILIDADE ESPECIAL:</h4>
+                        <p class="char-box-content">${char.special}</p>
+                    </div>
+                    
+                    <div class="char-stats-grid">
+                        <div class="stat-box hp">
+                            <p class="stat-label">VIDA</p>
+                            <p class="stat-value">${char.hp}</p>
+                        </div>
+                        <div class="stat-box defense">
+                            <p class="stat-label">DEFESA</p>
+                            <p class="stat-value">${char.defense}</p>
+                        </div>
+                    </div>
+                    
+                    <button class="western-btn btn-full" onclick="showCharacterSheet()">
+                        VER FICHA COMPLETA
+                    </button>
+                </div>
+            `;
+        }
+
+        // Criar indicadores de navegação
+        function createNavDots() {
+            const dots = document.getElementById('navDots');
+            dots.innerHTML = '';
+            characters.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot' + (i === currentCharIndex ? ' active' : '');
+                dots.appendChild(dot);
+            });
+        }
+
+        // Navegação de personagens
+        function nextCharacter() {
+            currentCharIndex = (currentCharIndex + 1) % characters.length;
+            displayCharacter();
+            createNavDots();
+        }
+
+        function prevCharacter() {
+            currentCharIndex = (currentCharIndex - 1 + characters.length) % characters.length;
+            displayCharacter();
+            createNavDots();
+        }
+
+        // Mostrar ficha completa
+        function showCharacterSheet() {
+            const char = characters[currentCharIndex];
+            const content = document.getElementById('sheetContent');
+            
+            // Se o personagem já foi selecionado, mostra com controles de vida
+            if (selectedCharacter && selectedCharacter.id === char.id) {
+                showSelectedCharacterSheet(char);
+                return;
+            }
+            
+            // Senão, mostra a ficha normal com botão de selecionar
+            content.innerHTML = `
+                <button class="close-btn" onclick="showScreen('selection')">✕</button>
+                
+                <div class="sheet-grid">
+                    <div>
+                        <div class="char-image">
+                            <img src="${char.image}" alt="${char.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='[Imagem: ${char.image}]'">
+                        </div>
+                    </div>
+                    
+                    <div class="char-info">
+                        <div>
+                            <h3 class="char-name">${char.name}</h3>
+                            <p class="char-nickname">${char.nickname}</p>
+                            <p class="char-age">Idade: ${char.age}</p>
+                        </div>
+                        
+                        <div class="char-box">
+                            <h4 class="char-box-title">HISTÓRIA:</h4>
+                            <p class="char-box-content">${char.lore}</p>
+                        </div>
+                        
+                        <div class="char-box">
+                            <h4 class="char-box-title">ARMAS:</h4>
+                            <ul class="char-box-content">
+                                ${char.weapons.map(w => `<li>• ${w}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="char-box">
+                            <h4 class="char-box-title">HABILIDADE ESPECIAL:</h4>
+                            <p class="char-box-content">${char.special}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="attributes-section">
+                    <h4 class="attributes-title">ATRIBUTOS</h4>
+                    <div class="attributes-grid">
+                        ${char.stats.map(stat => `
+                            <div class="attribute-box">
+                                <p class="attribute-name">${stat.name}</p>
+                                <p class="attribute-value">${stat.bonus}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="char-stats-grid" style="margin-top: 1.5rem;">
+                    <div class="stat-box hp">
+                        <p class="stat-label">VIDA</p>
+                        <p class="stat-value">${char.hp}</p>
+                    </div>
+                    <div class="stat-box defense">
+                        <p class="stat-label">DEFESA</p>
+                        <p class="stat-value">${char.defense}</p>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                    <button class="western-btn" onclick="selectCharacter()" style="width: auto;">
+                        ✓ SELECIONAR ESTE PERSONAGEM
+                    </button>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button class="western-btn-secondary" onclick="showScreen('selection')">← VOLTAR À SELEÇÃO</button>
+                </div>
+            `;
+            
+            showScreen('sheet');
+        }
+
+        // Selecionar personagem
+        function selectCharacter() {
+            const char = characters[currentCharIndex];
+            selectedCharacter = { ...char };
+            currentHP = char.hp;
+            inventory = [...char.weapons]; // Inicia com as armas do personagem
+            showSelectedCharacterSheet(char);
+        }
+
+        // Mostrar ficha do personagem selecionado com controles
+        function showSelectedCharacterSheet(char) {
+            const content = document.getElementById('sheetContent');
+            
+            content.innerHTML = `
+                <button class="close-btn" onclick="showScreen('selection')">✕</button>
+                
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="background: rgba(217,119,6,0.3); border: 2px solid #d97706; padding: 0.75rem; display: inline-block; margin-bottom: 1rem;">
+                        <p style="color: #fbbf24; font-weight: bold; font-size: 1.125rem;">★ PERSONAGEM SELECIONADO ★</p>
+                    </div>
+                    <h3 style="font-family: 'Rye', serif; font-size: 2.5rem; color: #fef3c7; margin-bottom: 0.5rem;">${char.name}</h3>
+                    <p style="font-size: 1.5rem; color: #fbbf24; font-style: italic;">${char.nickname}</p>
+                </div>
+                
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <div class="char-image" style="max-width: 400px; margin: 0 auto 2rem;">
+                        <img src="${char.image}" alt="${char.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='[Imagem: ${char.image}]'">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div style="background: rgba(127,29,29,0.4); border: 3px solid #991b1b; padding: 1.5rem; text-align: center;">
+                            <p style="color: #fca5a5; font-size: 1rem; font-weight: bold; margin-bottom: 1rem;">❤️ VIDA ATUAL</p>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 0.75rem;">
+                                <button onclick="changeHP(-1)" style="background: #7f1d1d; border: 2px solid #991b1b; color: #fef2f2; width: 45px; height: 45px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border-radius: 6px;">−</button>
+                                <p id="currentHPDisplay" style="color: #fef2f2; font-size: 2.5rem; font-weight: bold; min-width: 70px;">${currentHP}</p>
+                                <button onclick="changeHP(1)" style="background: #166534; border: 2px solid #15803d; color: #f0fdf4; width: 45px; height: 45px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border-radius: 6px;">+</button>
+                            </div>
+                            <p style="color: #fca5a5; font-size: 0.875rem;">Vida Máxima: ${char.hp}</p>
+                        </div>
+                        
+                        <div style="background: rgba(29,78,216,0.4); border: 3px solid #1e40af; padding: 1.5rem; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                            <p style="color: #93c5fd; font-size: 1rem; font-weight: bold; margin-bottom: 0.5rem;">🛡️ DEFESA</p>
+                            <p style="color: #eff6ff; font-size: 3rem; font-weight: bold;">${char.defense}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.6); border: 2px solid #92400e; padding: 1.5rem; margin-bottom: 2rem;">
+                        <h4 style="color: #fbbf24; font-weight: bold; margin-bottom: 0.75rem; font-size: 1rem; text-align: center;">⚡ HABILIDADE ESPECIAL</h4>
+                        <p style="color: #fef3c7; line-height: 1.6; text-align: center;">${char.special}</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <button class="western-btn-secondary" onclick="resetHP()" style="background: rgba(127,29,29,0.6); border-color: #991b1b;">
+                            ↻ RESTAURAR VIDA
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="attributes-section">
+                    <h4 class="attributes-title">ATRIBUTOS</h4>
+                    <div class="attributes-grid">
+                        ${char.stats.map(stat => `
+                            <div class="attribute-box">
+                                <p class="attribute-name">${stat.name}</p>
+                                <p class="attribute-value">${stat.bonus}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="inventory-section">
+                    <h4 class="inventory-title">📦 INVENTÁRIO</h4>
+                    
+                    <div class="inventory-controls">
+                        <input 
+                            type="text" 
+                            id="itemInput" 
+                            class="inventory-input" 
+                            placeholder="Nome do item..."
+                            onkeypress="if(event.key==='Enter') addItem()"
+                        >
+                        <button class="add-item-btn" onclick="addItem()">+ ADICIONAR</button>
+                    </div>
+                    
+                    <div class="inventory-list" id="inventoryList">
+                        ${renderInventory()}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button class="western-btn-secondary" onclick="deselectCharacter()" style="margin-bottom: 1rem;">
+                        ✕ DESSELECIONAR PERSONAGEM
+                    </button>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button class="western-btn-secondary" onclick="showScreen('selection')">← VOLTAR À SELEÇÃO</button>
+                </div>
+            `;
+            
+            showScreen('sheet');
+        }
+
+        // Renderizar inventário
+        function renderInventory() {
+            if (inventory.length === 0) {
+                return '<div class="inventory-empty">Nenhum item no inventário</div>';
+            }
+            
+            return inventory.map((item, index) => `
+                <div class="inventory-item">
+                    <span>• ${item}</span>
+                    <button class="remove-item-btn" onclick="removeItem(${index})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        // Adicionar item
+        function addItem() {
+            const input = document.getElementById('itemInput');
+            const itemName = input.value.trim();
+            
+            if (itemName) {
+                inventory.push(itemName);
+                input.value = '';
+                document.getElementById('inventoryList').innerHTML = renderInventory();
+            }
+        }
+
+        // Remover item
+        function removeItem(index) {
+            inventory.splice(index, 1);
+            document.getElementById('inventoryList').innerHTML = renderInventory();
+        }
+
+        // Alterar HP
+        function changeHP(amount) {
+            const maxHP = selectedCharacter.hp;
+            currentHP = Math.max(0, Math.min(maxHP, currentHP + amount));
+            document.getElementById('currentHPDisplay').textContent = currentHP;
+            
+            // Efeito visual quando HP chega a zero
+            if (currentHP === 0) {
+                document.getElementById('currentHPDisplay').style.color = '#dc2626';
+            } else {
+                document.getElementById('currentHPDisplay').style.color = '#fef2f2';
+            }
+        }
+
+        // Resetar HP
+        function resetHP() {
+            currentHP = selectedCharacter.hp;
+            document.getElementById('currentHPDisplay').textContent = currentHP;
+            document.getElementById('currentHPDisplay').style.color = '#fef2f2';
+        }
+
+        // Desselecionar personagem
+        function deselectCharacter() {
+            if (confirm('Deseja realmente desselecionar este personagem? O inventário será perdido.')) {
+                selectedCharacter = null;
+                currentHP = 0;
+                inventory = [];
+                showScreen('selection');
+            }
+        }
+
+        // Controle de áudio
+        function toggleMute() {
+            isMuted = !isMuted;
+            bgMusic.muted = isMuted;
+            document.getElementById('volumeIcon').textContent = isMuted ? '🔇' : '🔊';
+            
+            if (!isMuted && bgMusic.paused) {
+                bgMusic.play().catch(e => console.log('Erro ao reproduzir áudio'));
+            }
+        }
+
+        // Atalhos de teclado
+        document.addEventListener('keydown', (e) => {
+            const activeScreen = document.querySelector('.screen.active').id;
+            
+            if (activeScreen === 'selection') {
+                if (e.key === 'ArrowLeft') prevCharacter();
+                if (e.key === 'ArrowRight') nextCharacter();
+                if (e.key === 'Enter') showCharacterSheet();
+            }
+            
+            if (activeScreen === 'sheet' && e.key === 'Escape') {
+                showScreen('selection');
+            }
+        });
+    </script>
+</body>
+</html>
